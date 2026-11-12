@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Secrets / local config - NEVER commit these
+.env
+*.env
+!.env.example
+
+# Scan / test output generated locally (curated copies go in docs/evidence/)
+reports/
+
+# IDEs / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,46 +1,42 @@
-<!-- NW TDP 2026 v2 -->
-# DevSecOps pipeline
+# DevSecOps
 
-The starter pipeline demonstrates **Build → Test → SAST → SCA → DAST → Deploy gate**.
+**Owner:** Security / DevSecOps · **Backend choice:** Python 3.14 (FastAPI). The C# starter was removed to keep one language for the API and tests.
 
-- Build/test: Python 3.14 (FastAPI/pytest) and C# (.NET 8/xUnit) starter implementations are both validated.
-- SAST: GitHub CodeQL scans Python and C#.
-- SCA: `pip-audit` checks Python dependencies; `dotnet list package --vulnerable` checks .NET dependencies.
-- DAST: OWASP ZAP baseline scans the running Python API in CI.
-- Deploy gate: a placeholder job marks the point where deployment can be added after the checks. No cloud credentials are included.
+## Pipeline
 
-The pipeline validates both starter implementations. Teams should select one backend for their project and may remove the unused implementation/job after confirming the chosen path works.
+`.github/workflows/devsecops.yml` runs on every push and PR to `main`/`dev`:
 
-## Interpreting findings
+| Stage | Tool | Scans | Blocks the pipeline? | Evidence (artifact) |
+|---|---|---|---|---|
+| Build | `compileall` | App source | Yes, on error | job log |
+| Test | pytest + pytest-cov | `tests/python` | Yes, on any failure | `test-results` |
+| SAST | Bandit | `api/python/app` | Yes, on **MEDIUM+** severity with medium+ confidence. Medium because SQL injection (B608) is rated Medium | `sast-bandit` |
+| SAST | CodeQL | Python | Shows in Security tab; public repos only | Security → Code scanning |
+| SCA | pip-audit | `api/python/requirements.txt` (incl. transitive) | Yes, on **any** known vulnerability | `sca-pip-audit` |
+| DAST | OWASP ZAP API scan | Running API, via `/openapi.json` (exercises `POST /calculate`) | No (report only in Sprint 1) | `dast-zap` |
+| Deploy gate | — | — | Runs only if all blocking stages pass | job log |
 
-Review scanner output rather than assuming every alert is exploitable. Record the component, version, severity, evidence, decision, remediation and retest result. Set repository branch protection to require the relevant workflow checks. The ZAP baseline is configured not to fail the build automatically; teams/instructors should agree severity thresholds and change `fail_action` when the API and scan rules are stable.
+**Team to agree and record here:** when ZAP becomes blocking (proposal: from Sprint 2, fail on High via a rules file + `fail_action: true`), and how medium/low findings are triaged (proposal: an issue per finding, fix or justify within the sprint).
 
-## Run locally
+## Findings log
 
-### Python 3.14
+Record every finding: tool, ID, component/version, severity, decision, fix, retest.
 
-```bash
-cd api/python
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux/macOS: source .venv/bin/activate
-pip install -r requirements-dev.txt
-uvicorn app.main:app --reload
-```
+| # | Date | Tool | Finding | Severity | Decision / remediation | Retest |
+|---|---|---|---|---|---|---|
+| 1 | | pip-audit | Supplied starter pinned `fastapi==0.115.6` → `starlette 0.41.3` with 14 known advisories (e.g. PYSEC-2026-1941, fixed in 0.47.2) | see report | Upgraded to `fastapi==0.162.5` (current starlette) | pip-audit clean |
+| 2 | | Bandit | _Deliberate finding: e.g. SQL built with an f-string (B608, Medium) or `subprocess(..., shell=True)` (B602, High)_ | | | |
 
-In another terminal:
+## Evidence checklist (save to `docs/evidence/`)
 
-```bash
-cd api/python
-PYTHONPATH=. pytest ../../tests/python -q
-```
+- [ ] Successful build
+- [ ] Unit-test results
+- [ ] SAST results
+- [ ] SCA results
+- [ ] DAST results
+- [ ] Deliberately generated security finding (red pipeline)
+- [ ] Remediation of the finding (green pipeline)
 
-### C# / .NET 8
+## Secrets
 
-```bash
-dotnet test tests/csharp/Nationwide.Api.Tests/Nationwide.Api.Tests.csproj
-```
-
-## Important
-
-Both APIs currently return placeholder carbon values of zero. They do not yet calculate emissions or access the SQL database. Implement real factor lookups and calculation logic in Sprint 2. Do not commit secrets or real customer data.
+No secrets in the repo. Local config lives in `.env` (gitignored, template in `.env.example`); CI uses GitHub Actions secrets. Enable **Settings → Code security → Secret scanning / Push protection** if available. Azure Key Vault from Sprint 2.

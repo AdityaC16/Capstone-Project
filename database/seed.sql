@@ -1,2 +1,5 @@
--- NW TDP 2026 v2
--- Seed data
+-- Seed data (synthetic only)
+-- Owner: Infra / Data
+-- Seed Categories + EmissionsFactors + Assumptions for Travel, Food and Utilities.
+-- Every factor needs Source, Version and EffectiveDate.
+-- Optional: load test-data/*.csv into the spending tables.
