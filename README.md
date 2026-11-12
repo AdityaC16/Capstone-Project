@@ -1,92 +1,94 @@
-<<<<<<< HEAD
-<!-- NW TDP 2026 v2 -->
-# Nationwide TDP 2026 Capstone — Starter Repository (V2)
+# Personal Carbon Footprint & Savings Advisor
 
-This starter provides two interchangeable backend starting points: **C#/.NET 8** and **Python 3.14**. Teams should select one backend for their MVP. Both are included so teams can choose; the sample CI workflow initially validates both.
+Nationwide TDP 2026 Capstone. A customer-facing prototype that turns monthly spending into an estimated carbon footprint, then gives recommendations that cut both carbon and cost.
+
+> All data in this repository is **synthetic**. Never add real customer information or secrets.
+
+## Team
+
+| Role | Name | Owns |
+|---|---|---|
+| Scrum Master | _tbc_ | Board, ceremonies, repo admin, DoR/DoD, reflection, showcase |
+| Frontend / Product Owner (Sprint 1) | _tbc_ | User stories, customer journey, wireframes, UI |
+| Backend | _tbc_ | FastAPI app, validation, business logic, carbon engine |
+| Infra / Data | _tbc_ | SQL Server, `database/` schema + seed, runbook, deployment |
+| Security / DevSecOps | _tbc_ | `.github/workflows/devsecops.yml`, scans, evidence |
+| API, quality & cloud | _tbc_ | API contract, test suite, Azure, AI stretch |
+
+## Tech stack
+
+- **Python 3.14** with FastAPI + Uvicorn (backend choice: Python, see `docs/devsecops.md`)
+- **pytest** + pytest-cov for automated tests
+- **SQL Server / T-SQL** for spending and emissions data (`database/`)
+- **GitHub Actions** pipeline: Build → Test → SAST (Bandit, CodeQL) → SCA (pip-audit) → DAST (OWASP ZAP) → Deploy gate
 
 ## Repository layout
 
-- `api/csharp/` — minimal ASP.NET Core API
-- `api/python/` — FastAPI implementation
-- `tests/csharp/` — xUnit API tests
-- `tests/python/` — pytest API tests
-- `database/` — T-SQL schema and seed data
-- `frontend/` — simple starter customer interface
-- `test-data/` — synthetic sample spending datasets
-- `.github/workflows/devsecops.yml` — build, test, SAST, SCA, DAST and deployment gate
-- `docs/devsecops.md` — pipeline guidance
-
-## API endpoints
-
-Both implementations provide:
-
-- `GET /health`
-- `POST /calculate`
-
-Example request:
-
-```json
-{
-  "spending": [
-    { "category": "Travel", "amount": 25 },
-    { "category": "Food", "amount": 40 }
-  ]
-}
+```
+api/python/app/        FastAPI application
+api/python/            requirements.txt (runtime) and requirements-dev.txt (dev/CI)
+tests/python/          pytest tests
+database/              schema.sql, seed.sql, README.md (runbook)
+frontend/              customer UI (from Sprint 2/3)
+test-data/             synthetic spending datasets
+docs/                  backlog, DoR, DoD, API contract, DevSecOps, reflections, evidence/
+.github/workflows/     devsecops.yml
 ```
 
-The calculation endpoint is deliberately a placeholder and returns zero carbon until the team implements emissions-factor lookups and calculation logic in Sprint 2.
+## Getting started
 
-## Choose your backend
+```bash
+git clone <repo-url>
+cd <repo>
+python -m venv .venv
+# Windows (PowerShell):  .venv\Scripts\Activate.ps1
+# macOS/Linux:           source .venv/bin/activate
+pip install -r api/python/requirements-dev.txt
+cp .env.example .env        # then fill in your local DB details (never commit .env)
+```
 
-### Python 3.14
+Run the API (from `api/python`):
 
 ```bash
 cd api/python
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux/macOS: source .venv/bin/activate
-pip install -r requirements-dev.txt
 uvicorn app.main:app --reload
 ```
 
-Run tests from `api/python`:
+- Swagger UI: http://127.0.0.1:8000/docs
+- Health check: http://127.0.0.1:8000/health
+
+Run the tests (from the repo root):
 
 ```bash
-PYTHONPATH=. pytest ../../tests/python -q
+pytest
 ```
 
-### C# / .NET 8
-
-Run the API:
+Run the security scans locally, the same way the pipeline does:
 
 ```bash
-dotnet run --project api/csharp/Nationwide.Api/Nationwide.Api.csproj
+bandit -r api/python/app                       # SAST
+pip-audit -r api/python/requirements.txt       # SCA
 ```
 
-Run tests:
+## API
 
-```bash
-dotnet test tests/csharp/Nationwide.Api.Tests/Nationwide.Api.Tests.csproj
-```
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/health` | Liveness check |
+| POST | `/calculate` | Submit spending, get carbon estimate (mock until Sprint 2) |
 
-## DevSecOps
+Full request/response contract: [`docs/api-contract.md`](docs/api-contract.md).
 
-The GitHub Actions pipeline demonstrates:
+## How we work
 
-1. Build and automated tests
-2. SAST using GitHub CodeQL
-3. SCA using `pip-audit` and .NET vulnerable-package reporting
-4. DAST using OWASP ZAP against the running Python API
-5. A deployment gate placeholder
+- Branches: `main` (release) ← `dev` (integration) ← `feature/<issue#>-short-name` / `bugfix/<issue#>-short-name`
+- Every change goes through a pull request into `dev`: 1 approval + green pipeline
+- `dev` → `main` at the end of each sprint
+- See [CONTRIBUTING.md](CONTRIBUTING.md), [Definition of Ready](docs/definition-of-ready.md), [Definition of Done](docs/definition-of-done.md)
 
-See [`docs/devsecops.md`](docs/devsecops.md). Add deployment only after configuring protected GitHub environments, cloud identity and secrets. Never commit credentials.
+## Sprints
 
-## Sprint 1 focus
-
-Establish the repository, select a backend, prove the API and tests run, create the SQL schema/seed data, and demonstrate the security pipeline. Real carbon calculations, SQL integration and recommendations are Sprint 2 work.
-
-All supplied customer data is synthetic. Do not add real customer information.
-=======
-# Nationwide-TDP-2026-v2
-Nationwide-TDP-2026-v2 Captstone Project
->>>>>>> f6e492648e7f2df060fb5e2a1def2a6271d62ea6
+1. **Setup & first MVP:** repo, API skeleton, SQL schema/seed, DevSecOps pipeline
+2. **Carbon calculation:** emissions factors, SQL integration, calculation engine
+3. **Insights & recommendations:** trends, category analysis, savings, dashboard
+4. **Final MVP & showcase:** end-to-end + security testing, deployment, docs

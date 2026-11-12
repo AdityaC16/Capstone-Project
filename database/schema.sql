@@ -1,2 +1,10 @@
--- NW TDP 2026 v2
--- Database schema
+-- Database schema (T-SQL / SQL Server)
+-- Owner: Infra / Data
+-- Sprint 1 minimum tables:
+--   Categories        (e.g. Travel, Food, Utilities)
+--   EmissionsFactors  (CategoryId, kgCO2e per unit/GBP, Source, Version, EffectiveDate)
+--   Assumptions       (documented assumptions behind the calculation)
+-- Recommended (so submitted spending can be stored):
+--   Customers, SpendingSubmissions, SpendingItems
+-- Make the script re-runnable (drop/create or IF NOT EXISTS) and use constraints
+-- (PKs, FKs, NOT NULL, CHECK amount >= 0).
